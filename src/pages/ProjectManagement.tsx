@@ -1,16 +1,19 @@
 import Navigation from "@/components/Navigation";
-import { Users, UserPlus, UserMinus, ArrowRightLeft, Search } from "lucide-react";
+import { Users, UserPlus, UserMinus, ArrowRightLeft, Search, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
 
 const ProjectManagement = () => {
   const [rollOnSearch, setRollOnSearch] = useState("");
   const [rollOffSearch, setRollOffSearch] = useState("");
-  const rollOnData = [
+  const [rollOnData, setRollOnData] = useState([
     {
       employeeName: "Alice Johnson",
       employeeId: "TCS12345",
@@ -29,9 +32,9 @@ const ProjectManagement = () => {
       skill: "AWS, Docker",
       status: "Pending"
     }
-  ];
+  ]);
 
-  const rollOffData = [
+  const [rollOffData, setRollOffData] = useState([
     {
       employeeName: "Charlie Brown",
       employeeId: "TCS12347",
@@ -50,7 +53,11 @@ const ProjectManagement = () => {
       reason: "Internal Transfer",
       status: "In Progress"
     }
-  ];
+  ]);
+
+  const [editingRollOn, setEditingRollOn] = useState(null);
+  const [editingRollOff, setEditingRollOff] = useState(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const teamMovementData = [
     {
@@ -96,6 +103,34 @@ const ProjectManagement = () => {
   const filteredRollOffData = rollOffData.filter(employee =>
     employee.employeeId.toLowerCase().includes(rollOffSearch.toLowerCase())
   );
+
+  const handleEditRollOn = (employee, index) => {
+    setEditingRollOn({ ...employee, index });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditRollOff = (employee, index) => {
+    setEditingRollOff({ ...employee, index });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveRollOn = (updatedEmployee: any) => {
+    const newData = [...rollOnData];
+    const { index, ...employeeData } = updatedEmployee;
+    newData[index] = employeeData;
+    setRollOnData(newData);
+    setEditingRollOn(null);
+    setIsEditDialogOpen(false);
+  };
+
+  const handleSaveRollOff = (updatedEmployee: any) => {
+    const newData = [...rollOffData];
+    const { index, ...employeeData } = updatedEmployee;
+    newData[index] = employeeData;
+    setRollOffData(newData);
+    setEditingRollOff(null);
+    setIsEditDialogOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -223,7 +258,14 @@ const ProjectManagement = () => {
                         </div>
                         <div className="flex space-x-2">
                           <Button variant="outline" size="sm">View Details</Button>
-                          <Button variant="outline" size="sm">Edit</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleEditRollOn(employee, index)}
+                          >
+                            <Edit2 className="mr-2 h-3 w-3" />
+                            Edit
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -283,7 +325,14 @@ const ProjectManagement = () => {
                         </div>
                         <div className="flex space-x-2">
                           <Button variant="outline" size="sm">View Details</Button>
-                          <Button variant="outline" size="sm">Edit</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleEditRollOff(employee, index)}
+                          >
+                            <Edit2 className="mr-2 h-3 w-3" />
+                            Edit
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -344,7 +393,217 @@ const ProjectManagement = () => {
           </Tabs>
         </div>
       </main>
+
+      {/* Edit Roll-On Dialog */}
+      <Dialog open={isEditDialogOpen && editingRollOn} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="bg-gradient-card border-0 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Roll-On Details</DialogTitle>
+          </DialogHeader>
+          {editingRollOn && (
+            <EditRollOnForm 
+              employee={editingRollOn} 
+              onSave={handleSaveRollOn}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Roll-Off Dialog */}
+      <Dialog open={isEditDialogOpen && editingRollOff} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="bg-gradient-card border-0 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Roll-Off Details</DialogTitle>
+          </DialogHeader>
+          {editingRollOff && (
+            <EditRollOffForm 
+              employee={editingRollOff} 
+              onSave={handleSaveRollOff}
+              onCancel={() => setIsEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+};
+
+// Edit Roll-On Form Component
+const EditRollOnForm = ({ employee, onSave, onCancel }: any) => {
+  const [formData, setFormData] = useState(employee);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="employeeName">Employee Name</Label>
+          <Input
+            id="employeeName"
+            value={formData.employeeName}
+            onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="employeeId">Employee ID</Label>
+          <Input
+            id="employeeId"
+            value={formData.employeeId}
+            onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="project">Project</Label>
+          <Input
+            id="project"
+            value={formData.project}
+            onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="startDate">Start Date</Label>
+          <Input
+            id="startDate"
+            type="date"
+            value={formData.startDate}
+            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="role">Role</Label>
+          <Input
+            id="role"
+            value={formData.role}
+            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="skill">Skills</Label>
+          <Input
+            id="skill"
+            value={formData.skill}
+            onChange={(e) => setFormData({ ...formData, skill: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="status">Status</Label>
+          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Confirmed">Confirmed</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-gradient-primary">
+          Save Changes
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+// Edit Roll-Off Form Component
+const EditRollOffForm = ({ employee, onSave, onCancel }: any) => {
+  const [formData, setFormData] = useState(employee);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="employeeName">Employee Name</Label>
+          <Input
+            id="employeeName"
+            value={formData.employeeName}
+            onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="employeeId">Employee ID</Label>
+          <Input
+            id="employeeId"
+            value={formData.employeeId}
+            onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="project">Project</Label>
+          <Input
+            id="project"
+            value={formData.project}
+            onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="endDate">End Date</Label>
+          <Input
+            id="endDate"
+            type="date"
+            value={formData.endDate}
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="role">Role</Label>
+          <Input
+            id="role"
+            value={formData.role}
+            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="reason">Reason</Label>
+          <Select value={formData.reason} onValueChange={(value) => setFormData({ ...formData, reason: value })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Project Completion">Project Completion</SelectItem>
+              <SelectItem value="Internal Transfer">Internal Transfer</SelectItem>
+              <SelectItem value="Client Request">Client Request</SelectItem>
+              <SelectItem value="Personal Reasons">Personal Reasons</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="status">Status</Label>
+          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="In Progress">In Progress</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" className="bg-gradient-primary">
+          Save Changes
+        </Button>
+      </div>
+    </form>
   );
 };
 
