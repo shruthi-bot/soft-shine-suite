@@ -1,11 +1,15 @@
 import Navigation from "@/components/Navigation";
-import { Users, UserPlus, UserMinus, ArrowRightLeft } from "lucide-react";
+import { Users, UserPlus, UserMinus, ArrowRightLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 const ProjectManagement = () => {
+  const [rollOnSearch, setRollOnSearch] = useState("");
+  const [rollOffSearch, setRollOffSearch] = useState("");
   const rollOnData = [
     {
       employeeName: "Alice Johnson",
@@ -83,6 +87,15 @@ const ProjectManagement = () => {
         return "bg-muted text-muted-foreground";
     }
   };
+
+  // Filter functions for search
+  const filteredRollOnData = rollOnData.filter(employee =>
+    employee.employeeId.toLowerCase().includes(rollOnSearch.toLowerCase())
+  );
+
+  const filteredRollOffData = rollOffData.filter(employee =>
+    employee.employeeId.toLowerCase().includes(rollOffSearch.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -168,8 +181,18 @@ const ProjectManagement = () => {
                 </Button>
               </div>
               
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search by Employee ID..."
+                  value={rollOnSearch}
+                  onChange={(e) => setRollOnSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              
               <div className="grid gap-4">
-                {rollOnData.map((employee, index) => (
+                {filteredRollOnData.map((employee, index) => (
                   <Card key={index} className="bg-gradient-card border-0">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
@@ -218,8 +241,18 @@ const ProjectManagement = () => {
                 </Button>
               </div>
               
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search by Employee ID..."
+                  value={rollOffSearch}
+                  onChange={(e) => setRollOffSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              
               <div className="grid gap-4">
-                {rollOffData.map((employee, index) => (
+                {filteredRollOffData.map((employee, index) => (
                   <Card key={index} className="bg-gradient-card border-0">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
